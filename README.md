@@ -2,6 +2,11 @@
 
 Switch [Claude Code](https://claude.com/claude-code) between several Claude accounts in one click, and keep working in the same conversation when one account hits its usage limit.
 
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="docs/screenshot-light.png">
+  <img src="docs/screenshot-dark.png" width="760" alt="claude-switch window: three Claude accounts shown as jacks on a switchboard. A red cord runs from the Claude Code bar into the connected account; another account is free and a third is resting until its limit resets.">
+</picture>
+
 > Unofficial community tool. Not affiliated with or endorsed by Anthropic. Nothing leaves your computer.
 
 - **Any number of accounts.** Sign in to each one once; switching swaps Claude Code's stored login instead of logging in again.
