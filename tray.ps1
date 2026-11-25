@@ -66,7 +66,7 @@ function Update-Menu {
     $tray.Text = 'claude-switch: ' + (($state.accounts | Where-Object active | Select-Object -First 1).name)
   }
   [void]$menu.Items.Add((New-Object Windows.Forms.ToolStripSeparator))
-  $auto = New-Object Windows.Forms.ToolStripMenuItem 'Switch automatically when a limit is hit'
+  $auto = New-Object Windows.Forms.ToolStripMenuItem 'Switch automatically'
   $auto.Checked = [bool]($state -and $state.autoSwitch)
   $auto.add_Click({ param($s); [void](Invoke-Switch @('auto', $(if ($s.Checked) { 'off' } else { 'on' }))) })
   [void]$menu.Items.Add($auto)

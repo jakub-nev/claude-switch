@@ -184,8 +184,8 @@ kbd{font:700 12px var(--mono);border:1px solid var(--rule);border-radius:4px;pad
   <span class="plug" id="plug" aria-hidden="true"></span>
   <span class="line-text" id="line-text">Claude Code</span>
   <span class="sp"></span>
-  <label class="switch"><input type="checkbox" id="auto" role="switch"> Switch automatically when a limit is hit</label>
-  <p class="hint">Open Claude sessions pick up a switch on their next message. After an automatic switch, type <b>continue</b>.</p>
+  <label class="switch"><input type="checkbox" id="auto" role="switch"> Switch automatically</label>
+  <p class="hint" id="hint">Open Claude sessions pick up a switch on their next message.</p>
   <p id="status" role="status" aria-live="polite"></p>
 </section>
 
@@ -219,9 +219,17 @@ function status(msg, err) { const s = $('#status'); s.textContent = msg || ''; s
 const time = (ms) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 // Today: "02:40". Later this week: "Sat 23:00".
 const when = (ms) => (new Date(ms).toDateString() === new Date().toDateString() ? time(ms) : new Date(ms).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' }));
-let USAGE = null;
+let USAGE = null, SWITCH_AT = 90;
+// Mirrors the app's choice: the fuller of the two windows decides; the emptiest free account goes next.
+const fullness = (u) => { const ws = [u && u.session, u && u.week].filter((w) => w && typeof w.pct === 'number'); return ws.length ? Math.max(...ws.map((w) => w.pct)) : 50; };
+function nextUp() {
+  if (!S || !USAGE) return null;
+  const c = S.accounts.filter((a) => !a.active && !a.limitedUntil && USAGE[a.name] && !USAGE[a.name].error)
+    .map((a) => ({ n: a.name, f: fullness(USAGE[a.name]) })).filter((x) => x.f < 100).sort((a, b) => a.f - b.f);
+  return c.length ? c[0].n : null;
+}
 async function refreshUsage() {
-  try { USAGE = await api('/api/usage'); render(); } catch { /* keep the last numbers */ }
+  try { const r = await api('/api/usage'); USAGE = r.usage; SWITCH_AT = r.switchAt; render(); } catch { /* keep the last numbers */ }
 }
 function usageHtml(name) {
   const u = USAGE && USAGE[name];
@@ -245,7 +253,7 @@ async function refresh() {
 function stateOf(a) {
   if (a.active) return { cls: 'live', label: 'Connected' };
   if (a.limitedUntil) return { cls: 'resting', label: `Resting · back ${a.limitExact ? 'at' : 'by'} ${when(a.limitedUntil)}` };
-  return { cls: 'free', label: 'Free' };
+  return { cls: 'free', label: a.name === nextUp() && S.accounts.length > 2 ? 'Free · next up' : 'Free' };
 }
 
 function browserSelect(a, i) {
@@ -317,6 +325,9 @@ function render() {
   const n = S.claudeRunning;
   $('#line-text').innerHTML = n ? `Claude Code · <b>${n} session${n > 1 ? 's' : ''}</b> running` : 'Claude Code · not running';
   $('#auto').checked = S.autoSwitch;
+  $('#hint').innerHTML = S.autoSwitch
+    ? `When the patched-in account passes <b>${SWITCH_AT}%</b> of a limit, your next prompt goes to the account with the most room. If a reply still hits a limit, it switches and you type <b>continue</b>.`
+    : 'Open Claude sessions pick up a switch on their next message. Turn on automatic switching to move to the account with the most room before a limit stops you.';
   const focused = document.activeElement && document.activeElement.closest('[data-jack], .add');
   if (focused && (adding || renaming)) return; // don't wipe a form being typed in
   if ($('#add-form .busy')) return; // sign-in in progress
@@ -408,7 +419,7 @@ document.addEventListener('focusout', (e) => { if (e.target.closest('[data-renam
 document.addEventListener('change', async (e) => {
   const t = e.target;
   if (t.id === 'auto') {
-    try { await api('/api/auto', { on: t.checked }); status(t.checked ? 'Auto-switch is on. When an account hits its limit, the next free one is patched in.' : 'Auto-switch is off.'); }
+    try { await api('/api/auto', { on: t.checked }); status(t.checked ? 'Automatic switching is on.' : 'Automatic switching is off.'); }
     catch (err) { status(err.message, true); }
     return refresh();
   }

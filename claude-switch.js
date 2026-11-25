@@ -235,7 +235,32 @@ async function allUsage() {
   await Promise.all(accountNames().map(async (n) => {
     try { out[n] = await fetchUsage(n); } catch (e) { out[n] = { error: e instanceof UserError ? e.message : 'Usage not available right now.' }; }
   }));
+  writeJson(USAGE_CACHE, { at: Date.now(), data: out });
   return out;
+}
+// Shared between the window, the CLI and the hooks so a prompt never waits on the network twice a minute.
+const USAGE_CACHE = path.join(STORE, 'usage.json');
+async function cachedUsage(maxAgeMs = 60 * 1000) {
+  const c = readJson(USAGE_CACHE, null);
+  if (c && Date.now() - c.at < maxAgeMs) return c.data;
+  return allUsage();
+}
+
+// How full an account is: the fuller of its two windows. Unknown counts as half full.
+const fullness = (u) => {
+  const ws = [u && u.session, u && u.week].filter((w) => w && typeof w.pct === 'number' && !(w.resetsAt && w.resetsAt < Date.now()));
+  return ws.length ? Math.max(...ws.map((w) => w.pct)) : 50;
+};
+const SWITCH_AT = Number(process.env.CLAUDE_SWITCH_AT) || 90; // percent of a limit
+// The account with the most room left, or null when none is usable.
+function bestAccount(exclude, usage = {}) {
+  const now = Date.now();
+  const options = accountNames()
+    .filter((n) => n !== exclude && !isLimited(loadAccount(n), now) && !(usage[n] && usage[n].error))
+    .map((n) => ({ n, f: fullness(usage[n]) }))
+    .filter((x) => x.f < 100)
+    .sort((a, b) => a.f - b.f);
+  return options.length ? options[0] : null;
 }
 // The reset time of whichever window is full, so a limited account is skipped exactly as long as needed.
 function fullUntil(u) {
@@ -258,6 +283,12 @@ function setAutoSwitch(on) {
     .filter((g) => g.hooks.length);
   if (on) groups.push({ matcher: 'rate_limit', hooks: [{ type: 'command', command: hookCommand(), timeout: 30 }] });
   if (groups.length) s.hooks.StopFailure = groups; else delete s.hooks.StopFailure;
+  // Before each prompt: move to another account once the active one is nearly full.
+  const pre = (s.hooks.UserPromptSubmit || [])
+    .map((g) => ({ ...g, hooks: (g.hooks || []).filter((h) => !String(h.command).includes(HOOK_MARK)) }))
+    .filter((g) => g.hooks.length);
+  if (on) pre.push({ hooks: [{ type: 'command', command: hookCommand(), timeout: 20 }] });
+  if (pre.length) s.hooks.UserPromptSubmit = pre; else delete s.hooks.UserPromptSubmit;
   if (!Object.keys(s.hooks).length) delete s.hooks;
   writeJson(SETTINGS_FILE, s);
 }
@@ -265,9 +296,10 @@ function setAutoSwitch(on) {
 async function runHook() {
   let input = {};
   try { input = JSON.parse(await readStdin()); } catch {}
-  if (input.error && input.error !== 'rate_limit') return;
   const act = activeName();
   if (!act) return;
+  if (input.hook_event_name === 'UserPromptSubmit') return preSwitch(act);
+  if (input.error && input.error !== 'rate_limit') return;
   // Several sessions can hit the same limit at once; only the first one switches.
   if (Date.now() - (appState().autoSwitchedAt || 0) < 60 * 1000) {
     return say(`claude-switch: already switched to "${act}". Type "continue" to resume.`);
@@ -277,11 +309,27 @@ async function runHook() {
   acc.limitedUntil = null;
   try { acc.limitedUntil = fullUntil(await fetchUsage(act)); } catch {}
   saveAccount(act, acc);
-  const next = nextAvailable(act);
+  let usage = {};
+  try { usage = await cachedUsage(); } catch {}
+  const next = (bestAccount(act, usage) || {}).n;
   if (!next) return say(`claude-switch: "${act}" hit its limit and every other account is limited too.`);
   switchTo(next);
   setAppState({ autoSwitchedAt: Date.now() });
   say(`claude-switch: "${act}" hit its limit. Switched to "${next}" (${loadAccount(next).oauthAccount.emailAddress}). Type "continue" to resume.`);
+}
+// Runs before every prompt while auto-switch is on. Silent unless it switches.
+async function preSwitch(act) {
+  if (Date.now() - (appState().autoSwitchedAt || 0) < 60 * 1000) return;
+  let usage;
+  try { usage = await cachedUsage(); } catch { return; }
+  const mine = usage[act];
+  if (!mine || mine.error || fullness(mine) < SWITCH_AT) return;
+  const best = bestAccount(act, usage);
+  if (!best || best.f >= SWITCH_AT) return; // nowhere better to go: keep going until the real limit
+  switchTo(best.n);
+  setAppState({ autoSwitchedAt: Date.now() });
+  if (fullUntil(mine)) { const a = loadAccount(act); a.limitedAt = Date.now(); a.limitedUntil = fullUntil(mine); saveAccount(act, a); }
+  say(`claude-switch: "${act}" is at ${fullness(mine)}% of its limit. This prompt goes to "${best.n}" (${best.f}% used).`);
 }
 function say(msg) {
   process.stdout.write(JSON.stringify({ systemMessage: msg }) + '\n');
@@ -393,7 +441,7 @@ function startUi({ open = true, port = 0 } = {}) {
   const token = crypto.randomBytes(16).toString('hex');
   const html = fs.readFileSync(path.join(__dirname, 'ui.html'), 'utf8');
   let lastPing = Date.now();
-  let usageCache = null;
+  let usageInFlight = null;
   const routes = {
     'GET /api/state': () => ({
       accounts: accountsView(), autoSwitch: autoSwitchEnabled(), claudeRunning: claudeRunning(),
@@ -409,8 +457,8 @@ function startUi({ open = true, port = 0 } = {}) {
     'POST /api/auto': (b) => (setAutoSwitch(!!b.on), {}),
     'POST /api/clear-limit': (b) => { const a = loadAccount(b.name); a.limitedAt = null; a.limitedUntil = null; saveAccount(b.name, a); return {}; },
     'GET /api/usage': async () => {
-      if (!usageCache || Date.now() - usageCache.at > 60 * 1000) usageCache = { at: Date.now(), data: await allUsage() };
-      return usageCache.data;
+      if (!usageInFlight) usageInFlight = cachedUsage().finally(() => { usageInFlight = null; });
+      return { usage: await usageInFlight, switchAt: SWITCH_AT };
     },
     'POST /api/browser': (b) => {
       const a = loadAccount(b.name);
@@ -488,14 +536,15 @@ async function ui() {
 // ---------- CLI ----------
 const HELP = `claude-switch: switch Claude Code between your Claude accounts
 
-  claude-switch                     switch to the next account
+  claude-switch                     switch to the account with the most room left
   claude-switch <name> [-c]         switch to <name>; -c reopens Claude with --continue here
   claude-switch add <name> [email]  sign in to an account and save it
   claude-switch save <name>         save the account Claude Code is signed in to now
   claude-switch list                show accounts (* active, ~ limited)
   claude-switch remove <name>       forget an account
   claude-switch rename <old> <new>
-  claude-switch auto on|off         auto-switch when a usage limit is hit
+  claude-switch auto on|off         switch automatically near a usage limit (before each prompt)
+                                    and when one is hit
   claude-switch ui                  open the app window
   claude-switch browser <name>      open the browser profile paired with <name>
 `;
@@ -514,7 +563,7 @@ async function main(argv) {
     case 'rename': renameAccount(a1, a2); return console.log(`Renamed "${a1}" to "${a2}".`);
     case 'auto': {
       if (a1 === 'on' || a1 === 'off') setAutoSwitch(a1 === 'on');
-      return console.log(`Auto-switch on limit: ${autoSwitchEnabled() ? 'on' : 'off'}`);
+      return console.log(`Automatic switching: ${autoSwitchEnabled() ? "on" : "off"}`);
     }
     case 'browser': if (!openAccountBrowser(a1)) fail(`No browser profile paired with "${a1}". Pair one in the app window.`); return;
     case 'list': {
@@ -539,7 +588,9 @@ async function main(argv) {
   if (!target) {
     if (names.length < 2) fail('Save at least two accounts first: claude-switch add <name>');
     const act = activeName();
-    target = nextAvailable(act) || names[(names.indexOf(act) + 1) % names.length];
+    let usage = {};
+    try { usage = await cachedUsage(); } catch {}
+    target = (bestAccount(act, usage) || {}).n || nextAvailable(act) || names[(names.indexOf(act) + 1) % names.length];
   }
   const r = switchTo(target);
   const acc = loadAccount(target);
