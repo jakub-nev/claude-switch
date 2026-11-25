@@ -38,7 +38,7 @@ It swaps Claude Code's own stored login instead of making the user log in again,
 - Tray (Windows only, user request): a PowerShell NotifyIcon with the account list, one-click switch, auto-switch toggle, and "Open window". Linux gets the window and CLI only.
 - Active account is tracked by the app's own state file, not inferred from `~/.claude.json`, because a running session can rewrite that file.
 - Saved profiles live in `~/.claude-accounts/profiles/` and contain live tokens: private, never synced or published.
-- Remaining usage per account is not available to the app; it must not claim to show it.
+- Usage per account (5-hour session and weekly limit, percent used and reset time) comes from the same read-only endpoint Claude Code's /usage screen uses (`/api/oauth/usage`). Inactive accounts with an expired access token are refreshed with their own refresh token and saved back at once; the active account is never refreshed by the app (Claude Code owns it). Auto-switch uses the real reset time when a window is full.
 - Requires Node.js and Claude Code.
 
 ## Brand Commitments

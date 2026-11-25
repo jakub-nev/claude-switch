@@ -104,6 +104,16 @@ main{flex:1;position:relative;padding:44px var(--gutter) 28px}
 .live .state{color:var(--cord)}
 .free .state{color:#3f6b2f}
 .resting .state{color:#8a5a12}
+.usage{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px 10px;margin:2px 0 0;padding:10px 0 2px;border-top:1px dashed #3b2a2059}
+.usage dt{font:650 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.usage dd{margin:0}
+.bar{height:6px;border-radius:3px;background:#3b2a2024;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--ink-2);transition:width .6s var(--ease)}
+.bar.high i{background:#b07a1f}
+.bar.full i{background:#8a5a12}
+.pct{font:400 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--ink);text-align:right;white-space:nowrap}
+.pct small{font-size:12px;color:var(--ink-2)}
+.usage-note{grid-column:1/-1;margin:0;font:400 12px/1.4 var(--sans);color:var(--ink-2)}
 .actions{display:flex;gap:8px;margin-top:auto;padding-top:6px}
 .jack .btn{color:var(--ink);border-color:#5a433066}
 .jack .btn:hover{background:#3b2a2012;border-color:var(--ink-2)}
@@ -207,6 +217,25 @@ async function api(path, body) {
 }
 function status(msg, err) { const s = $('#status'); s.textContent = msg || ''; s.classList.toggle('err', !!err); }
 const time = (ms) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+// Today: "02:40". Later this week: "Sat 23:00".
+const when = (ms) => (new Date(ms).toDateString() === new Date().toDateString() ? time(ms) : new Date(ms).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' }));
+let USAGE = null;
+async function refreshUsage() {
+  try { USAGE = await api('/api/usage'); render(); } catch { /* keep the last numbers */ }
+}
+function usageHtml(name) {
+  const u = USAGE && USAGE[name];
+  if (!u) return `<dl class="usage"><p class="usage-note">Checking limits…</p></dl>`;
+  if (u.error) return `<dl class="usage"><p class="usage-note">${esc(u.error)}</p></dl>`;
+  const row = (label, w) => {
+    if (!w) return '';
+    const cls = w.pct >= 100 ? 'full' : w.pct >= 80 ? 'high' : '';
+    const reset = w.resetsAt ? ` <small>· ${esc(when(w.resetsAt))}</small>` : '';
+    return `<dt>${label}</dt><dd><div class="bar ${cls}" role="meter" aria-label="${label} limit used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${w.pct}"><i style="width:${Math.min(100, w.pct)}%"></i></div></dd>
+      <dd class="pct">${w.pct}%${reset}</dd>`;
+  };
+  return `<dl class="usage" title="Share of this plan's limit used, and when it resets">${row('Session', u.session)}${row('Week', u.week)}</dl>`;
+}
 
 async function refresh() {
   try { S = await api('/api/state'); render(); }
@@ -215,7 +244,7 @@ async function refresh() {
 
 function stateOf(a) {
   if (a.active) return { cls: 'live', label: 'Connected' };
-  if (a.limitedUntil) return { cls: 'resting', label: `Resting · back by ${time(a.limitedUntil)}` };
+  if (a.limitedUntil) return { cls: 'resting', label: `Resting · back ${a.limitExact ? 'at' : 'by'} ${when(a.limitedUntil)}` };
   return { cls: 'free', label: 'Free' };
 }
 
@@ -261,6 +290,7 @@ function jackHtml(a, i) {
     ${nameEl}
     <p class="meta">${esc(a.email)}${a.plan ? '<br>' + esc(a.plan) : ''}</p>
     <span class="state">${esc(st.label)}</span>
+    ${usageHtml(a.name)}
     ${browserSelect(a, i)}
     ${removeRow}
   </li>`;
@@ -409,7 +439,9 @@ $('#continue').addEventListener('click', async () => {
 addEventListener('resize', () => drawCord(false));
 new ResizeObserver(() => drawCord(false)).observe(document.body);
 refresh();
+refreshUsage();
 setInterval(() => { if (!document.hidden) refresh(); else api('/api/ping', {}).catch(() => {}); }, 4000);
+setInterval(() => { if (!document.hidden) refreshUsage(); }, 60000);
 </script>
 </body>
 </html>

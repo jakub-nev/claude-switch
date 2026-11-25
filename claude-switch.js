@@ -144,7 +144,9 @@ function moveAccount(name, delta) {
   setAppState({ order });
 }
 
-const isLimited = (acc, now = Date.now()) => !!acc.limitedAt && now - acc.limitedAt < LIMIT_WINDOW_MS;
+// limitedUntil is the real reset time when the usage endpoint gave one; limitedAt + 5h is the fallback guess.
+const limitEnd = (acc) => acc.limitedUntil || (acc.limitedAt ? acc.limitedAt + LIMIT_WINDOW_MS : 0);
+const isLimited = (acc, now = Date.now()) => limitEnd(acc) > now;
 function nextAvailable(after) {
   const names = accountNames();
   const start = names.indexOf(after);
@@ -165,7 +167,8 @@ function accountsView() {
       email: o.emailAddress || '',
       plan: planLabel(o),
       active: n === act,
-      limitedUntil: isLimited(a) ? a.limitedAt + LIMIT_WINDOW_MS : null,
+      limitedUntil: isLimited(a) ? limitEnd(a) : null,
+      limitExact: !!a.limitedUntil,
       browser: a.browser || null,
     };
   });
@@ -177,6 +180,67 @@ function planLabel(o) {
   if (t.includes('team')) return 'Team';
   if (t.includes('enterprise')) return 'Enterprise';
   return '';
+}
+
+// ---------- usage limits ----------
+// The same endpoint Claude Code's /usage screen reads. Read-only.
+const USAGE_URL = 'https://api.anthropic.com/api/oauth/usage';
+const TOKEN_URL = 'https://platform.claude.com/v1/oauth/token';
+const CLIENT_ID = '9d1c250a-e61b-44d9-88ed-5944d1962f5e'; // Claude Code's public OAuth client
+const fresh = (o) => o && o.accessToken && (!o.expiresAt || o.expiresAt > Date.now() + 60 * 1000);
+
+async function accessTokenFor(name) {
+  if (name === activeName()) {
+    // Never refresh the active login ourselves: Claude Code does that, and two refreshers
+    // racing on one rotating refresh token can sign the account out.
+    const o = (liveLogin() || {}).credentials?.claudeAiOauth;
+    return fresh(o) ? o.accessToken : null;
+  }
+  const acc = loadAccount(name);
+  const o = acc.credentials && acc.credentials.claudeAiOauth;
+  if (!o) return null;
+  if (fresh(o)) return o.accessToken;
+  if (!o.refreshToken) return null;
+  const r = await fetch(TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: o.refreshToken, client_id: CLIENT_ID, scope: (o.scopes || []).join(' ') }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!r.ok) throw new UserError('Signed out. Sign in to this account again.');
+  const j = await r.json();
+  const now = loadAccount(name); // re-read, then save the rotated tokens straight away
+  const no = now.credentials.claudeAiOauth;
+  no.accessToken = j.access_token;
+  if (j.refresh_token) no.refreshToken = j.refresh_token;
+  if (j.expires_in) no.expiresAt = Date.now() + j.expires_in * 1000;
+  if (j.scope) no.scopes = j.scope.split(' ');
+  saveAccount(name, now);
+  if (activeName() === name) writeJson(CRED_FILE, now.credentials); // switched while we refreshed
+  return no.accessToken;
+}
+
+const window_ = (w) => (w && typeof w.utilization === 'number' ? { pct: Math.round(w.utilization), resetsAt: w.resets_at ? Date.parse(w.resets_at) : null } : null);
+async function fetchUsage(name) {
+  const token = await accessTokenFor(name);
+  if (!token) return { error: name === activeName() ? 'Open Claude Code once to refresh this login.' : 'No login saved.' };
+  const r = await fetch(USAGE_URL, { headers: { Authorization: `Bearer ${token}`, 'anthropic-beta': 'oauth-2025-04-20' }, signal: AbortSignal.timeout(10000) });
+  if (r.status === 401) return { error: 'Login expired. Sign in to this account again.' };
+  if (!r.ok) return { error: `Usage not available right now (HTTP ${r.status}).` };
+  const j = await r.json();
+  return { session: window_(j.five_hour), week: window_(j.seven_day), at: Date.now() };
+}
+async function allUsage() {
+  const out = {};
+  await Promise.all(accountNames().map(async (n) => {
+    try { out[n] = await fetchUsage(n); } catch (e) { out[n] = { error: e instanceof UserError ? e.message : 'Usage not available right now.' }; }
+  }));
+  return out;
+}
+// The reset time of whichever window is full, so a limited account is skipped exactly as long as needed.
+function fullUntil(u) {
+  const full = [u && u.session, u && u.week].filter((w) => w && w.pct >= 100 && w.resetsAt);
+  return full.length ? Math.max(...full.map((w) => w.resetsAt)) : null;
 }
 
 // ---------- auto-switch (Claude Code StopFailure hook) ----------
@@ -210,6 +274,8 @@ async function runHook() {
   }
   const acc = loadAccount(act);
   acc.limitedAt = Date.now();
+  acc.limitedUntil = null;
+  try { acc.limitedUntil = fullUntil(await fetchUsage(act)); } catch {}
   saveAccount(act, acc);
   const next = nextAvailable(act);
   if (!next) return say(`claude-switch: "${act}" hit its limit and every other account is limited too.`);
@@ -327,6 +393,7 @@ function startUi({ open = true, port = 0 } = {}) {
   const token = crypto.randomBytes(16).toString('hex');
   const html = fs.readFileSync(path.join(__dirname, 'ui.html'), 'utf8');
   let lastPing = Date.now();
+  let usageCache = null;
   const routes = {
     'GET /api/state': () => ({
       accounts: accountsView(), autoSwitch: autoSwitchEnabled(), claudeRunning: claudeRunning(),
@@ -340,7 +407,11 @@ function startUi({ open = true, port = 0 } = {}) {
     'POST /api/rename': (b) => (renameAccount(b.name, b.to), {}),
     'POST /api/move': (b) => (moveAccount(b.name, b.delta), {}),
     'POST /api/auto': (b) => (setAutoSwitch(!!b.on), {}),
-    'POST /api/clear-limit': (b) => { const a = loadAccount(b.name); a.limitedAt = null; saveAccount(b.name, a); return {}; },
+    'POST /api/clear-limit': (b) => { const a = loadAccount(b.name); a.limitedAt = null; a.limitedUntil = null; saveAccount(b.name, a); return {}; },
+    'GET /api/usage': async () => {
+      if (!usageCache || Date.now() - usageCache.at > 60 * 1000) usageCache = { at: Date.now(), data: await allUsage() };
+      return usageCache.data;
+    },
     'POST /api/browser': (b) => {
       const a = loadAccount(b.name);
       if (b.create) {
@@ -449,10 +520,16 @@ async function main(argv) {
     case 'list': {
       if (a1 === '--json') return console.log(JSON.stringify({ accounts: accountsView(), autoSwitch: autoSwitchEnabled() }));
       if (!names.length) return console.log('No accounts saved yet. Run: claude-switch add <name>');
+      const usage = argv.includes('--no-usage') ? {} : await allUsage();
+      const hm = (t) => new Date(t).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+      const w = (label, x) => (x ? `${label} ${String(x.pct).padStart(3)}%${x.resetsAt ? ` (resets ${hm(x.resetsAt)})` : ''}` : '');
       for (const a of accountsView()) {
         const flag = a.active ? '*' : a.limitedUntil ? '~' : ' ';
-        const lim = a.limitedUntil ? `  resting, back by ${new Date(a.limitedUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '';
+        const u = usage[a.name] || {};
+        const lim = a.limitedUntil ? `  resting, back ${a.limitExact ? 'at' : 'by'} ${hm(a.limitedUntil)}` : '';
         console.log(`${flag} ${a.name.padEnd(12)} ${a.email}${a.plan ? `  (${a.plan})` : ''}${lim}`);
+        if (u.error) console.log(`    ${u.error}`);
+        else if (u.session || u.week) console.log(`    ${[w('session', u.session), w('week', u.week)].filter(Boolean).join('   ')}`);
       }
       return;
     }
