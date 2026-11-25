@@ -1,0 +1,536 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-25T22:04:34.276Z",
+  "title": "Design System: claude-switch",
+  "extensions": {
+    "colorMeta": {
+      "cord": {
+        "role": "primary",
+        "displayName": "Cord Red",
+        "canonical": "oklch(54.9% 0.174 30.5)",
+        "tonalRamp": [
+          "#140706",
+          "#41120c",
+          "#741a10",
+          "#aa2112",
+          "#d04937",
+          "#e87a68",
+          "#f6b0a4",
+          "#fee9e5"
+        ],
+        "purpose": "The live connection only: cord, live socket rim, live ring, Connected label."
+      },
+      "brass": {
+        "role": "primary",
+        "displayName": "Panel Brass",
+        "canonical": "oklch(66.3% 0.111 78.2)",
+        "tonalRamp": [
+          "#0f0a05",
+          "#302105",
+          "#563900",
+          "#7f5400",
+          "#a17421",
+          "#bd985d",
+          "#d7c19e",
+          "#f4ede4"
+        ],
+        "purpose": "Pressable and structural metal: board primary buttons, outlines, plug, free socket rims, toggle on."
+      },
+      "brass-hi": {
+        "role": "primary",
+        "displayName": "Polished Brass",
+        "canonical": "oklch(77.4% 0.110 81.2)",
+        "tonalRamp": [
+          "#0e0b05",
+          "#2f2105",
+          "#553a00",
+          "#7d5500",
+          "#9e7521",
+          "#ba995d",
+          "#d6c19e",
+          "#f4eee4"
+        ],
+        "purpose": "Hover state of brass, focus outlines, status text on the plate."
+      },
+      "board": {
+        "role": "neutral",
+        "displayName": "Walnut Board",
+        "canonical": "oklch(27.8% 0.027 54.1)",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#29231f",
+          "#483d36",
+          "#6a5a50",
+          "#8a796f",
+          "#aa9b92",
+          "#cbc2bd",
+          "#f0eeec"
+        ],
+        "purpose": "Page, header and footer background.",
+        "lightValue": "#cdb48b"
+      },
+      "board-edge": {
+        "role": "neutral",
+        "displayName": "Walnut Edge",
+        "canonical": "oklch(23.8% 0.022 53.9)",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#282320",
+          "#473e38",
+          "#685b52",
+          "#887a71",
+          "#a89c95",
+          "#cac2be",
+          "#f0eeed"
+        ],
+        "purpose": "Darker board edge tone.",
+        "lightValue": "#b99d70"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Brass Rule",
+        "canonical": "oklch(66.3% 0.111 78.2)",
+        "tonalRamp": [
+          "#0f0a05",
+          "#302105",
+          "#563900",
+          "#7f5400",
+          "#a17421",
+          "#bd985d",
+          "#d7c19e",
+          "#f4ede4"
+        ],
+        "purpose": "Hairline dividers, empty-jack dashed border, key caps on the board.",
+        "lightValue": "#5a433055"
+      },
+      "on-board": {
+        "role": "neutral",
+        "displayName": "Board Text",
+        "canonical": "oklch(92.1% 0.034 86.3)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#27241c",
+          "#453f31",
+          "#665d48",
+          "#867c67",
+          "#a69e8c",
+          "#c9c4b8",
+          "#f0eeeb"
+        ],
+        "purpose": "Primary text on the board.",
+        "lightValue": "#22180f"
+      },
+      "on-board-2": {
+        "role": "neutral",
+        "displayName": "Board Text Muted",
+        "canonical": "oklch(81.1% 0.054 83.9)",
+        "tonalRamp": [
+          "#0d0b08",
+          "#292317",
+          "#4a3e27",
+          "#6c5b39",
+          "#8d7b58",
+          "#ab9d80",
+          "#ccc3b2",
+          "#f1eee9"
+        ],
+        "purpose": "Secondary text on the board.",
+        "lightValue": "#4a3523"
+      },
+      "label": {
+        "role": "neutral",
+        "displayName": "Cream Label",
+        "canonical": "oklch(92.1% 0.034 86.3)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#27241c",
+          "#453f31",
+          "#665d48",
+          "#867c67",
+          "#a69e8c",
+          "#c9c4b8",
+          "#f0eeeb"
+        ],
+        "purpose": "Jack card face.",
+        "lightValue": "#fbf6ea"
+      },
+      "label-2": {
+        "role": "neutral",
+        "displayName": "Cream Label Shade",
+        "canonical": "oklch(88.0% 0.043 86.0)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#28231a",
+          "#473f2d",
+          "#685c42",
+          "#897c60",
+          "#a89d87",
+          "#cac3b5",
+          "#f0eeea"
+        ],
+        "purpose": "Field fill inside cards.",
+        "lightValue": "#f1e8d4"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Label Ink",
+        "canonical": "oklch(21.1% 0.015 57.4)",
+        "tonalRamp": [
+          "#0c0b0a",
+          "#262321",
+          "#443e3a",
+          "#645c56",
+          "#847b75",
+          "#a49d97",
+          "#c8c3c0",
+          "#efeeed"
+        ],
+        "purpose": "Text and primary button fill on cards."
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Label Ink Muted",
+        "canonical": "oklch(40.3% 0.044 60.7)",
+        "tonalRamp": [
+          "#0d0b09",
+          "#2b221b",
+          "#4c3c2f",
+          "#705845",
+          "#917863",
+          "#af9a89",
+          "#cfc1b7",
+          "#f1eeeb"
+        ],
+        "purpose": "Meta lines, key caps, default state label on cards."
+      },
+      "plate": {
+        "role": "neutral",
+        "displayName": "Line Plate",
+        "canonical": "oklch(18.8% 0.009 43.0)",
+        "tonalRamp": [
+          "#0c0b0b",
+          "#262322",
+          "#433f3d",
+          "#625c59",
+          "#827c79",
+          "#a39d9b",
+          "#c7c3c2",
+          "#efeeee"
+        ],
+        "purpose": "Terminal line and overflow menu; dark in both schemes."
+      },
+      "plate-text": {
+        "role": "neutral",
+        "displayName": "Plate Text",
+        "canonical": "oklch(89.8% 0.037 84.6)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#28241b",
+          "#463f30",
+          "#675c45",
+          "#887c64",
+          "#a79d8a",
+          "#c9c3b7",
+          "#f0eeeb"
+        ],
+        "purpose": "Text on the plate."
+      },
+      "plate-2": {
+        "role": "neutral",
+        "displayName": "Plate Text Muted",
+        "canonical": "oklch(73.0% 0.053 81.5)",
+        "tonalRamp": [
+          "#0d0b08",
+          "#2a2317",
+          "#4a3e28",
+          "#6d5b3a",
+          "#8d7a59",
+          "#ac9c81",
+          "#cdc3b2",
+          "#f1eee9"
+        ],
+        "purpose": "Hint text on the plate."
+      },
+      "state-free": {
+        "role": "tertiary",
+        "displayName": "Free Green",
+        "canonical": "oklch(48.1% 0.102 138.0)",
+        "tonalRamp": [
+          "#080d07",
+          "#192914",
+          "#2b4921",
+          "#3f6b2f",
+          "#5e8c4e",
+          "#85ab79",
+          "#b5ccae",
+          "#eaf1e8"
+        ],
+        "purpose": "Free state text and dot on cards."
+      },
+      "state-resting": {
+        "role": "tertiary",
+        "displayName": "Resting Amber",
+        "canonical": "oklch(50.9% 0.103 70.8)",
+        "tonalRamp": [
+          "#0f0a06",
+          "#31200a",
+          "#583809",
+          "#815202",
+          "#a37230",
+          "#bf9665",
+          "#d9bfa2",
+          "#f5ede5"
+        ],
+        "purpose": "Resting state text and dot on cards."
+      },
+      "rim-resting": {
+        "role": "tertiary",
+        "displayName": "Dulled Rim",
+        "canonical": "oklch(64.2% 0.046 79.6)",
+        "tonalRamp": [
+          "#0d0b08",
+          "#292319",
+          "#493e2b",
+          "#6c5b3f",
+          "#8c7b5e",
+          "#ab9c85",
+          "#ccc3b4",
+          "#f1eeea"
+        ],
+        "purpose": "Socket rim of a resting jack."
+      },
+      "alert": {
+        "role": "tertiary",
+        "displayName": "Alert Salmon",
+        "canonical": "oklch(75.8% 0.145 30.0)",
+        "tonalRamp": [
+          "#120807",
+          "#3d1611",
+          "#6c241b",
+          "#9f3327",
+          "#c55646",
+          "#dd8173",
+          "#eeb4aa",
+          "#fbeae7"
+        ],
+        "purpose": "Errors and destructive menu item, on the plate only."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Header wordmark only, uppercase."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Account name on each jack and the empty-jack heading, uppercase."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Base interface text; hints and field labels at 13px."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Emails, plans, times, paths, terminal line text, status line."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Every button label."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Jack state line with 8px dot, uppercase."
+      }
+    },
+    "shadows": [
+      {
+        "name": "raised",
+        "value": "0 2px 3px #0000004d, 0 10px 24px -8px #00000080",
+        "lightValue": "0 1px 2px #3b2a2033, 0 10px 22px -10px #3b2a2066",
+        "purpose": "Jack cards and the terminal line."
+      },
+      {
+        "name": "live-ring",
+        "value": "0 0 0 2px #c23b2a",
+        "purpose": "Stacked on raised, live jack only."
+      },
+      {
+        "name": "menu",
+        "value": "0 4px 6px #0000004d, 0 18px 40px -12px #000000a0",
+        "purpose": "Overflow menu."
+      },
+      {
+        "name": "footer-lift",
+        "value": "0 -10px 24px -14px #00000066",
+        "purpose": "Sticky footer."
+      },
+      {
+        "name": "socket-inset",
+        "value": "inset 0 0 0 3px #3b2a20",
+        "purpose": "Inside every jack socket."
+      },
+      {
+        "name": "cord-shadow",
+        "value": "drop-shadow(0 3px 2px #00000059)",
+        "purpose": "Filter under the patch cord."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "System ease: cord draw, toggle knob, card transitions, menu pop."
+      },
+      {
+        "name": "cord-draw",
+        "value": "700ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Signature: cord redraws into the newly live jack via stroke-dashoffset. Never under reduced motion."
+      },
+      {
+        "name": "menu-pop",
+        "value": "180ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Overflow menu scales from .96 and fades in from top-right."
+      },
+      {
+        "name": "control",
+        "value": "150ms",
+        "purpose": "Button background, border and color transitions."
+      },
+      {
+        "name": "toggle",
+        "value": "250ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Toggle knob slide."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation:none; transition:none",
+        "purpose": "All motion off under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "560px",
+        "purpose": "Below this, hide the header note and the line hint."
+      },
+      {
+        "name": "content-max",
+        "value": "1180px",
+        "purpose": "Gutter grows to cap content width."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Brass button on the board, e.g. Add account.",
+      "html": "<div style=\"background:#33251c;padding:16px\"><button class=\"ds-btn\">Add account</button></div>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 16px;border-radius:7px;border:1px solid #b88a3b;background:#b88a3b;color:#1e1712;font:600 14px Archivo,system-ui,sans-serif;cursor:pointer;transition:background .15s,border-color .15s}.ds-btn:hover{background:#d9ae5f;border-color:#d9ae5f}.ds-btn:focus-visible{outline:2px solid #d9ae5f;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Brass outline button on the board.",
+      "html": "<div style=\"background:#33251c;padding:16px\"><button class=\"ds-btn2\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2.5\"/><path d=\"m7 9 3 3-3 3M12 15h5\"/></svg>Open with --continue</button></div>",
+      "css": ".ds-btn2{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 16px;border-radius:7px;border:1px solid #b88a3b;background:transparent;color:#efe4cc;font:600 14px Archivo,system-ui,sans-serif;cursor:pointer;transition:background .15s,border-color .15s}.ds-btn2:hover{background:#b88a3b22;border-color:#d9ae5f}.ds-btn2:focus-visible{outline:2px solid #d9ae5f;outline-offset:2px}"
+    },
+    {
+      "name": "Card Primary Button",
+      "kind": "button",
+      "refersTo": "button-on-label-primary",
+      "description": "Ink button on a cream jack, e.g. Patch in.",
+      "html": "<div style=\"background:#efe4cc;padding:16px\"><button class=\"ds-btn3\">Patch in</button></div>",
+      "css": ".ds-btn3{min-height:38px;padding:0 16px;border-radius:7px;border:1px solid #1e1712;background:#1e1712;color:#efe4cc;font:600 14px Archivo,system-ui,sans-serif;cursor:pointer;transition:background .15s}.ds-btn3:hover{background:#3b2a20}.ds-btn3:focus-visible{outline:2px solid #1e1712;outline-offset:2px}"
+    },
+    {
+      "name": "Jack",
+      "kind": "card",
+      "refersTo": "jack",
+      "description": "Signature account card; the live variant gets the cord-red rim and ring.",
+      "html": "<div style=\"background:#33251c;padding:20px\"><div class=\"ds-jack ds-live\"><div class=\"ds-top\"><span class=\"ds-hole\"></span><span class=\"ds-key\">2</span></div><h3 class=\"ds-name\">Second</h3><p class=\"ds-meta\">ana.second@example.com<br>Pro</p><span class=\"ds-state\">Connected</span></div></div>",
+      "css": ".ds-jack{display:flex;flex-direction:column;gap:10px;width:260px;background:#efe4cc;color:#1e1712;border-radius:10px;padding:18px;box-shadow:0 2px 3px #0000004d,0 10px 24px -8px #00000080}.ds-live{box-shadow:0 0 0 2px #c23b2a,0 2px 3px #0000004d,0 10px 24px -8px #00000080}.ds-top{display:flex;justify-content:space-between;align-items:flex-start}.ds-hole{width:38px;height:38px;border-radius:50%;background:#171210;border:5px solid #b88a3b;box-shadow:inset 0 0 0 3px #3b2a20}.ds-live .ds-hole{border-color:#c23b2a}.ds-key{font:700 12px \"Courier Prime\",ui-monospace,monospace;color:#5a4330;border:1px solid #5a433044;border-radius:4px;padding:1px 6px}.ds-name{margin:0;padding-top:10px;border-top:1px dashed #3b2a2059;font:700 18px/1.2 \"Courier Prime\",ui-monospace,monospace;text-transform:uppercase;letter-spacing:.02em}.ds-meta{margin:0;font:400 14px/1.5 \"Courier Prime\",ui-monospace,monospace;color:#5a4330}.ds-state{display:flex;align-items:center;gap:8px;font:650 12px Archivo,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#c23b2a}.ds-state::before{content:\"\";width:8px;height:8px;border-radius:50%;background:currentColor}"
+    },
+    {
+      "name": "Terminal Line",
+      "kind": "custom",
+      "refersTo": "terminal-line",
+      "description": "Dark plate with the brass plug the cord leaves from.",
+      "html": "<div class=\"ds-line\"><span class=\"ds-plug\"></span><span class=\"ds-lt\">Claude Code · <b>4 sessions</b> running</span></div>",
+      "css": ".ds-line{position:relative;padding:14px 18px 14px 58px;background:#171210;color:#e9dcc2;border-radius:10px;box-shadow:0 2px 3px #0000004d,0 10px 24px -8px #00000080}.ds-plug{position:absolute;left:21px;top:50%;margin-top:-8px;width:16px;height:16px;border-radius:50%;background:#b88a3b;box-shadow:0 0 0 4px #b88a3b40}.ds-lt{font:400 14px \"Courier Prime\",ui-monospace,monospace}"
+    },
+    {
+      "name": "Browser Profile Select",
+      "kind": "input",
+      "refersTo": "select",
+      "description": "Native select inside a jack.",
+      "html": "<div style=\"background:#efe4cc;padding:16px\"><select class=\"ds-sel\"><option>Brave · Personal</option></select></div>",
+      "css": ".ds-sel{min-height:34px;border-radius:6px;border:1px solid #5a433066;background:#e4d6b8;color:#1e1712;padding:0 8px;font:400 14px Archivo,system-ui,sans-serif}.ds-sel:focus-visible{outline:2px solid #1e1712;outline-offset:2px}"
+    },
+    {
+      "name": "Auto-switch Toggle",
+      "kind": "input",
+      "description": "Native checkbox with role=switch on the plate.",
+      "html": "<label class=\"ds-sw\"><input type=\"checkbox\" role=\"switch\" checked> Switch automatically</label>",
+      "css": ".ds-sw{display:inline-flex;align-items:center;gap:10px;font:14px Archivo,system-ui,sans-serif;color:#e9dcc2;background:#171210;padding:12px;border-radius:10px}.ds-sw input{appearance:none;margin:0;width:40px;height:22px;border-radius:11px;background:#4a3a2c;position:relative;cursor:pointer;transition:background .2s}.ds-sw input::after{content:\"\";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#e9dcc2;transition:transform .25s cubic-bezier(.16,1,.3,1)}.ds-sw input:checked{background:#b88a3b}.ds-sw input:checked::after{background:#1e1712;transform:translateX(18px)}.ds-sw input:focus-visible{outline:2px solid #d9ae5f;outline-offset:2px}"
+    },
+    {
+      "name": "Overflow Menu",
+      "kind": "nav",
+      "refersTo": "menu",
+      "description": "Plate menu of jack actions; the destructive item is Alert Salmon.",
+      "html": "<ul class=\"ds-menu\"><li><button>Rename</button></li><li><hr></li><li><button class=\"ds-danger\">Remove from this computer</button></li></ul>",
+      "css": ".ds-menu{min-width:220px;margin:0;padding:6px;list-style:none;background:#171210;color:#e9dcc2;border-radius:8px;box-shadow:0 4px 6px #0000004d,0 18px 40px -12px #000000a0}.ds-menu button{display:block;width:100%;padding:9px 10px;border:0;border-radius:5px;background:none;color:inherit;text-align:left;font:14px Archivo,system-ui,sans-serif;cursor:pointer}.ds-menu button:hover,.ds-menu button:focus-visible{background:#ffffff14;outline:none}.ds-menu .ds-danger{color:#ff8a78}.ds-menu hr{border:0;border-top:1px solid #ffffff1f;margin:5px 4px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Switchboard",
+    "overview": "The terminal is a line and every Claude account is a jack on a walnut board. Exactly one jack is patched in, and a red cord runs from the terminal line's brass plug down into that jack's socket. The whole system exists to make that one fact, which account Claude Code is using right now, readable at a glance and changeable in one click.\n\nThe material is an old operator's console: a walnut-brown shell, cream label cards that read like typed index tags, brass for rims, rules and the controls you press, and a near-black plate for the terminal line. Names, emails, times and paths are typed in Courier Prime as if on a label maker; everything the interface itself says (buttons, hints, states) is in Archivo. Density is calm: a handful of cards in an auto-filling grid, one sticky footer, no sidebars. Controls are standard native widgets dressed in the board's materials, not reinvented.\n\nThe system refuses the grey settings list with avatar circles. Accounts are physical jacks with sockets and number keys, not rows.",
+    "keyCharacteristics": [
+      "One cord red, reserved for the live connection.",
+      "Cream label cards on a walnut board; a dark plate for the terminal line in both color schemes.",
+      "Courier Prime for data, Archivo for interface text.",
+      "Brass for every rim, rule and pressable surface on the board.",
+      "The patch cord is the only signature motion."
+    ],
+    "rules": [
+      {
+        "name": "The One Cord Rule",
+        "body": "Cord red appears only where the live connection is: the cord, the live socket, the live ring, the \"Connected\" label. Errors and destructive actions use Alert Salmon, never cord red. If a screen has two red things that are not the same connection, one of them is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Brass Is Metal Rule",
+        "body": "Brass marks things you could touch on a real board: rims, plugs, rules, buttons. It is not a text color for prose on the board.",
+        "section": "colors"
+      },
+      {
+        "name": "The Typed Label Rule",
+        "body": "If the user named it, owns it, or a machine reports it (account, email, plan, time, path, key number), it is set in Courier Prime. If the interface is speaking, it is Archivo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Empty Jack Rule",
+        "body": "The empty jack has no shadow and no fill: a dashed outline on the bare board. Only accounts that exist are raised.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep cord red for the live connection only (cord, live socket rim, live ring, \"Connected\").",
+      "Do set account names, emails, plans, times, paths and key numbers in Courier Prime; set interface text in Archivo.",
+      "Do keep the terminal line and menu on the dark plate in both color schemes.",
+      "Do give every jack a socket, a number key cap, and its state as text plus a dot, not color alone.",
+      "Do use stroke SVG icons at 18px, 1.75 stroke, from the inline sprite.",
+      "Do switch off all animation and transition under `prefers-reduced-motion`."
+    ],
+    "donts": [
+      "Don't render accounts as a grey settings list with avatar circles.",
+      "Don't use cord red for errors, warnings or destructive actions; use Alert Salmon.",
+      "Don't raise the empty jack; it stays a flat dashed outline.",
+      "Don't add a second signature motion; the cord redraw is the only one.",
+      "Don't use Anthropic's logo or brand marks anywhere in the interface."
+    ]
+  }
+}
